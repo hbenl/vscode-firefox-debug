@@ -103,7 +103,8 @@ export class FirefoxDebugSession {
 
 			this.reloadWatcher = chokidar.watch(this.config.reloadOnChange.watch, { 
 				ignored: this.config.reloadOnChange.ignore,
-				ignoreInitial: true
+				ignoreInitial: true,
+				awaitWriteFinish: this.config.reloadOnChange.awaitWriteFinish
 			});
 
 			let reload: () => void;

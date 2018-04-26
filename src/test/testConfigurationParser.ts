@@ -294,7 +294,8 @@ describe('The configuration parser', function() {
 		assert.deepEqual(parsedConfiguration.reloadOnChange, <NormalizedReloadConfiguration>{
 			watch: [ '/home/user/project' ],
 			ignore: [],
-			debounce: 100
+			debounce: 100,
+			awaitWriteFinish: false
 		});
 	});
 
@@ -309,7 +310,8 @@ describe('The configuration parser', function() {
 		assert.deepEqual(parsedConfiguration.reloadOnChange, <NormalizedReloadConfiguration>{
 			watch: [ '/home/user/project/js', '/home/user/project/css' ],
 			ignore: [],
-			debounce: 100
+			debounce: 100,
+			awaitWriteFinish: false
 		});
 	});
 
@@ -328,7 +330,8 @@ describe('The configuration parser', function() {
 		assert.deepEqual(parsedConfiguration.reloadOnChange, <NormalizedReloadConfiguration>{
 			watch: [ '/home/user/project/js' ],
 			ignore: [ '/home/user/project/js/dummy.js' ],
-			debounce: 0
+			debounce: 0,
+			awaitWriteFinish: false
 		});
 	});
 
@@ -345,7 +348,8 @@ describe('The configuration parser', function() {
 		assert.deepEqual(parsedConfiguration.reloadOnChange, <NormalizedReloadConfiguration>{
 			watch: [ '/home/user/project/js' ],
 			ignore: [],
-			debounce: 100
+			debounce: 100,
+			awaitWriteFinish: false
 		});
 	});
 
@@ -354,7 +358,8 @@ describe('The configuration parser', function() {
 		let reloadOnChange: NormalizedReloadConfiguration = {
 			watch: [ '/home/user/project/js', '/home/user/project/css' ],
 			ignore: [ '/home/user/project/css/dummy.css' ],
-			debounce: 200
+			debounce: 200,
+			awaitWriteFinish: false
 		}
 		let parsedConfiguration = await parseConfiguration({
 			request: 'launch',
@@ -370,7 +375,8 @@ describe('The configuration parser', function() {
 			let reloadOnChangeNormalized: NormalizedReloadConfiguration = {
 				watch: ['C:/Users/WinUser/Projects/project/scripts/**/*.js', '!C:/Users/WinUser/Projects/project/scripts/composer.js'],
 				ignore: ['C:/Users/WinUser/Projects/project/scripts/cache/**/*.js'],
-				debounce: 200
+				debounce: 200,
+				awaitWriteFinish: false
 			}
 
 			let parsedConfiguration = await parseConfiguration({
@@ -388,7 +394,8 @@ describe('The configuration parser', function() {
 			let reloadOnChangeNormalized: NormalizedReloadConfiguration = {
 				watch: ['/home/user/project/scripts/**/*.js', '!/home/user/project/scripts/composer.js'],
 				ignore: ['/home/user/project/scripts/cache/**/*.js'],
-				debounce: 200
+				debounce: 200,
+				awaitWriteFinish: false
 			}
 
 			let parsedConfiguration = await parseConfiguration({
@@ -410,8 +417,9 @@ describe('The configuration parser', function() {
 			let reloadOnChangeNormalized: NormalizedReloadConfiguration = {
 				watch: ['C:/Users/WinUser/Projects/project/scripts/**/*.js', '!C:/Users/WinUser/Projects/project/scripts/composer.js'],
 				ignore: [],
-				debounce: 100
-			}
+				debounce: 100,
+				awaitWriteFinish: false
+			};
 
 			let parsedConfiguration = await parseConfiguration({
 				request: 'launch',
@@ -424,8 +432,9 @@ describe('The configuration parser', function() {
 			let reloadOnChangeNormalized: NormalizedReloadConfiguration = {
 				watch: ['/home/user/project/scripts/**/*.js', '!/home/user/project/scripts/composer.js'],
 				ignore: [],
-				debounce: 100
-			}
+				debounce: 100,
+				awaitWriteFinish: false
+			};
 
 			let parsedConfiguration = await parseConfiguration({
 				request: 'launch',
@@ -442,7 +451,8 @@ describe('The configuration parser', function() {
 			let reloadOnChangeNormalized: NormalizedReloadConfiguration = {
 				watch: ['C:/Users/WinUser/Projects/project/scripts/**/*.js'],
 				ignore: [],
-				debounce: 100
+				debounce: 100,
+				awaitWriteFinish: false
 			}
 
 			let parsedConfiguration = await parseConfiguration({
@@ -456,7 +466,8 @@ describe('The configuration parser', function() {
 			let reloadOnChangeNormalized: NormalizedReloadConfiguration = {
 				watch: ['/home/user/project/scripts/**/*.js'],
 				ignore: [],
-				debounce: 100
+				debounce: 100,
+				awaitWriteFinish: false
 			}
 
 			let parsedConfiguration = await parseConfiguration({
@@ -467,6 +478,64 @@ describe('The configuration parser', function() {
 
 			assert.deepEqual(parsedConfiguration.reloadOnChange, reloadOnChangeNormalized);
 		}
+	});
+
+	it('should allow not providing "awaitWriteFinish"', async function() {
+		let parsedConfiguration = await parseConfiguration({
+			request: 'launch',
+			file: '/home/user/project/index.html',
+			reloadOnChange: {
+				watch: '/home/user/project/js'
+			}
+		});
+
+		assert.deepEqual(parsedConfiguration.reloadOnChange, <NormalizedReloadConfiguration>{
+			watch: ['/home/user/project/js'],
+			ignore: [],
+			debounce: 100,
+			awaitWriteFinish: false
+		});
+	});
+
+	it('should allow providing "awaitWriteFinish" as a boolean', async function() {
+		let parsedConfiguration = await parseConfiguration({
+			request: 'launch',
+			file: '/home/user/project/index.html',
+			reloadOnChange: {
+				watch: '/home/user/project/js',
+				awaitWriteFinish: true
+			}
+		});
+
+		assert.deepEqual(parsedConfiguration.reloadOnChange, <NormalizedReloadConfiguration>{
+			watch: ['/home/user/project/js'],
+			ignore: [],
+			debounce: 100,
+			awaitWriteFinish: true
+		});
+	});
+
+	it('should allow providing "awaitWriteFinish" as an incomplete object', async function () {
+		let parsedConfiguration = await parseConfiguration({
+			request: 'launch',
+			file: '/home/user/project/index.html',
+			reloadOnChange: {
+				watch: '/home/user/project/js',
+				awaitWriteFinish: {
+					pollInterval: 123
+				}
+			}
+		});
+
+		assert.deepEqual(parsedConfiguration.reloadOnChange, <NormalizedReloadConfiguration>{
+			watch: ['/home/user/project/js'],
+			ignore: [],
+			debounce: 100,
+			awaitWriteFinish: {
+				pollInterval: 123,
+				stabilityThreshold: undefined
+			}
+		});
 	});
 
 	it('should parse "skipFiles"', async function() {

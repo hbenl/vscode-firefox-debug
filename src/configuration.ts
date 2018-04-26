@@ -7,6 +7,7 @@ import { isWindowsPlatform, findAddonId, normalizePath } from './util/misc';
 import { isExecutable } from './util/fs';
 import { Minimatch } from 'minimatch';
 import FirefoxProfile = require('firefox-profile');
+import { AwaitWriteFinishOptions } from 'chokidar';
 
 let log = Log.create('ParseConfiguration');
 
@@ -53,12 +54,14 @@ export interface DetailedReloadConfiguration {
 	watch: string | string[];
 	ignore?: string | string[];
 	debounce?: number | boolean;
+	awaitWriteFinish?: boolean | AwaitWriteFinishOptions;
 }
 
 export interface NormalizedReloadConfiguration {
 	watch: string[];
 	ignore: string[];
 	debounce: number;
+	awaitWriteFinish: boolean | AwaitWriteFinishOptions;
 }
 
 export interface ParsedConfiguration {
@@ -426,7 +429,8 @@ function parseReloadConfiguration(
 		return {
 			watch: [ normalizePath(reloadConfig) ],
 			ignore: [],
-			debounce: defaultDebounce
+			debounce: defaultDebounce,
+			awaitWriteFinish: false
 		};
 
 	} else if (Array.isArray(reloadConfig)) {
@@ -434,7 +438,8 @@ function parseReloadConfiguration(
 		return {
 			watch: reloadConfig.map(path => normalizePath(path)),
 			ignore: [],
-			debounce: defaultDebounce
+			debounce: defaultDebounce,
+			awaitWriteFinish: false
 		};
 
 	} else {
@@ -468,7 +473,17 @@ function parseReloadConfiguration(
 			debounce = (_config.debounce !== false) ? defaultDebounce : 0;
 		}
 
-		return { watch, ignore, debounce };
+		let awaitWriteFinish: boolean | AwaitWriteFinishOptions;
+		if (typeof _config.awaitWriteFinish === 'object') {
+			awaitWriteFinish = {
+				stabilityThreshold: _config.awaitWriteFinish.stabilityThreshold,
+				pollInterval: _config.awaitWriteFinish.pollInterval
+			};
+		} else {
+			awaitWriteFinish = !!_config.awaitWriteFinish || false;
+		}
+
+		return { watch, ignore, debounce, awaitWriteFinish };
 	}
 }
 

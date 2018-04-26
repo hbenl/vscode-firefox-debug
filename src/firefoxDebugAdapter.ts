@@ -63,6 +63,7 @@ export class FirefoxDebugAdapter extends DebugAdapterBase {
 			Log.setConfig(config.log);
 		}
 		let parsedConfig = await parseConfiguration(config);
+
 		this.session = new FirefoxDebugSession(parsedConfig, (ev) => this.sendEvent(ev));
 		await this.session.start();
 	}

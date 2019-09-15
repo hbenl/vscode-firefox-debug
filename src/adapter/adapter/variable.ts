@@ -85,6 +85,12 @@ export class VariableAdapter {
 					return new VariableAdapter(
 						varname, referenceExpression, referenceFrame, grip.type, threadAdapter);
 
+				case 'BigInt':
+
+					return new VariableAdapter(
+						varname, referenceExpression, referenceFrame,
+						`${(<FirefoxDebugProtocol.BigIntGrip>grip).text}n`, threadAdapter);
+
 				case 'longString':
 
 					return new VariableAdapter(

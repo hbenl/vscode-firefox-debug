@@ -194,6 +194,10 @@ function renderGrip(grip: FirefoxDebugProtocol.Grip): string {
 
 				return grip.type;
 
+			case 'BigInt':
+
+				return `${(<FirefoxDebugProtocol.BigIntGrip>grip).text}n`;
+
 			case 'longString':
 
 				const initial = (<FirefoxDebugProtocol.LongStringGrip>grip).initial;

@@ -5,6 +5,7 @@ import { PendingRequest, PendingRequests } from '../../util/pendingRequests';
 import { ActorProxy } from './interface';
 import { ISourceActorProxy, SourceActorProxy } from './source';
 import { MappedLocation, UrlLocation } from '../../location';
+import { FrameActorProxy, IFrameActorProxy } from './frame';
 
 let log = Log.create('ThreadActorProxy');
 
@@ -20,7 +21,7 @@ export interface IThreadActorProxy {
 	resume(exceptionBreakpoints: ExceptionBreakpoints | undefined, resumeLimitType?: 'next' | 'step' | 'finish'): Promise<void>;
 	interrupt(immediately?: boolean): Promise<void>;
 	fetchSources(): Promise<FirefoxDebugProtocol.Source[]>;
-	fetchStackFrames(start?: number, count?: number): Promise<FirefoxDebugProtocol.Frame[]>;
+	fetchStackFrames(start?: number, count?: number): Promise<IFrameActorProxy[]>;
 	setBreakpoint(location: MappedLocation, sourceActor: ISourceActorProxy, condition?: string, logValue?: string): Promise<void>;
 	pauseOnExceptions(pauseOnExceptions: boolean, ignoreCaughtExceptions: boolean): Promise<void>;
 	removeBreakpoint(location: MappedLocation, sourceActor: ISourceActorProxy): Promise<void>;
@@ -62,7 +63,7 @@ export class ThreadActorProxy extends EventEmitter implements ActorProxy, IThrea
 	private interruptPromise?: Promise<void>;
 
 	private pendingSourcesRequests = new PendingRequests<FirefoxDebugProtocol.Source[]>();
-	private pendingStackFramesRequests = new PendingRequests<FirefoxDebugProtocol.Frame[]>();
+	private pendingStackFramesRequests = new PendingRequests<IFrameActorProxy[]>();
 	private pendingEmptyResponseRequests = new PendingRequests<void>();
 
 	/**
@@ -200,10 +201,10 @@ export class ThreadActorProxy extends EventEmitter implements ActorProxy, IThrea
 	/**
 	 * Fetch StackFrames. This can only be called while the thread is paused.
 	 */
-	public fetchStackFrames(start = 0, count = 1000): Promise<FirefoxDebugProtocol.Frame[]> {
+	public fetchStackFrames(start = 0, count = 1000): Promise<IFrameActorProxy[]> {
 		log.debug(`Fetching stackframes from thread ${this.name}`);
 
-		return new Promise<FirefoxDebugProtocol.Frame[]>((resolve, reject) => {
+		return new Promise<IFrameActorProxy[]>((resolve, reject) => {
 			this.pendingStackFramesRequests.enqueue({ resolve, reject });
 			this.connection.sendRequest({
 				to: this.name, type: 'frames',
@@ -324,9 +325,10 @@ export class ThreadActorProxy extends EventEmitter implements ActorProxy, IThrea
 
 		} else if (response['frames']) {
 
-			let frames = <FirefoxDebugProtocol.Frame[]>(response['frames']);
+			const frames = <FirefoxDebugProtocol.Frame[]>(response['frames']);
 			log.debug(`Received ${frames.length} frames from thread ${this.name}`);
-			this.pendingStackFramesRequests.resolveOne(frames);
+			const frameActors = frames.map(frame => new FrameActorProxy(frame, this.connection));
+			this.pendingStackFramesRequests.resolveOne(frameActors);
 
 		} else if (response['type'] === 'newGlobal') {
 

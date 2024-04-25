@@ -13,6 +13,9 @@ import { SourceMappingSourceActorProxy } from './source';
 import { IThreadActorProxy, ExceptionBreakpoints, AttachOptions } from '../actorProxy/thread';
 import { SourceMappingInfo } from './info';
 import { MappedLocation, UrlLocation } from '../../location';
+import { IFrameActorProxy } from '../actorProxy/frame';
+import { SourceMappingFrameActorProxy } from "./frame";
+import { getGeneratedRangeChain, getOriginalScopeChain } from 'tc39-proposal-scope-mapping';
 
 let log = Log.create('SourceMappingThreadActorProxy');
 
@@ -153,7 +156,7 @@ export class SourceMappingThreadActorProxy extends EventEmitter implements IThre
 		log.debug('Created SourceMapConsumer');
 
 		let sourceMappingInfo = new SourceMappingInfo(
-			sourceMappingSourceActors, sourceActor, sourceMapUrl, sourceMapConsumer, sourceRoot);
+			sourceMappingSourceActors, sourceActor, sourceMapUrl, sourceMapConsumer, sourceRoot, rawSourceMap);
 
 		for (let origSource of sourceMapConsumer.sources) {
 
@@ -191,37 +194,81 @@ export class SourceMappingThreadActorProxy extends EventEmitter implements IThre
 	public async fetchStackFrames(
 		start?: number,
 		count?: number
-	): Promise<FirefoxDebugProtocol.Frame[]> {
+	): Promise<IFrameActorProxy[]> {
 
-		let stackFrames = await this.underlyingActorProxy.fetchStackFrames(start, count);
+		const underlyingFrames = await this.underlyingActorProxy.fetchStackFrames(start, count);
 
-		await Promise.all(stackFrames.map((frame) => this.applySourceMapToFrame(frame)));
-
-		return stackFrames;
+		return (await Promise.all(underlyingFrames.map(frame => this.applySourceMapToFrame(frame)))).flat();
 	}
 
-	private async applySourceMapToFrame(frame: FirefoxDebugProtocol.Frame): Promise<void> {
+	private async applySourceMapToFrame(frame: IFrameActorProxy): Promise<IFrameActorProxy[]> {
 
-		let sourceMappingInfo: SourceMappingInfo | undefined;
-		const sourceMappingInfoPromise = this.getSourceMappingInfo(frame.where.actor);
-		sourceMappingInfo = await sourceMappingInfoPromise;
+		const sourceMappingInfo = await this.getSourceMappingInfo(frame.frame.where.actor);
 		const source = sourceMappingInfo.underlyingSource.source;
 
-		if (source && sourceMappingInfo && sourceMappingInfo.hasSourceMap && frame.where.line) {
+		if (source && sourceMappingInfo && sourceMappingInfo.hasSourceMap && frame.frame.where.line) {
 
-			let originalLocation = sourceMappingInfo.originalLocationFor({
-				line: frame.where.line, column: frame.where.column || 0
-			});
+			const generatedLocation = {
+				line: frame.frame.where.line, column: frame.frame.where.column || 0
+			};
+			const originalLocation = sourceMappingInfo.originalLocationFor(generatedLocation);
 
-			if (originalLocation && originalLocation.url) {
+			if (originalLocation 
+				&& originalLocation.url
+				&& sourceMappingInfo.originalScopes
+				&& sourceMappingInfo.generatedRanges
+			) {
+				const generatedRangeChain = getGeneratedRangeChain({
+					line: generatedLocation.line - 1,
+					column: generatedLocation.column },
+					sourceMappingInfo.generatedRanges
+				);
 
-				frame.where = {
-					actor: `${source.actor}!${originalLocation.url}`,
-					line: originalLocation.line || undefined,
-					column: originalLocation.column || undefined
+				const originalSourceActorName = `${source.actor}!${originalLocation.url}`;
+				const originalSourceIndex = sourceMappingInfo.sources.findIndex(
+					source => source.name === originalSourceActorName
+				);
+				const originalScopeChain = getOriginalScopeChain({
+					sourceIndex: originalSourceIndex,
+					line: originalLocation.line - 1,
+					column: originalLocation.column ?? 0
+				}, sourceMappingInfo.originalScopes[originalSourceIndex]);
+
+				const originalFrames = [new SourceMappingFrameActorProxy(
+					frame,
+					originalLocation,
+					originalSourceActorName,
+					originalScopeChain,
+					generatedRangeChain
+				)];
+
+				for (const generatedRange of [...generatedRangeChain].reverse()) {
+					const callsite = generatedRange.original?.callsite;
+					if (callsite) {
+						const originalSourceActor = sourceMappingInfo.sources[callsite.sourceIndex];
+						const originalLocation: UrlLocation = {
+							line: callsite.line + 1,
+							column: callsite.column,
+							url: originalSourceActor.url ?? undefined
+						};
+						const originalScopeChain = getOriginalScopeChain(
+							callsite,
+							sourceMappingInfo.originalScopes[callsite.sourceIndex]
+						);
+						originalFrames.push(new SourceMappingFrameActorProxy(
+							frame,
+							originalLocation,
+							originalSourceActor.name,
+							originalScopeChain,
+							generatedRangeChain
+						));
+					}
 				}
+				return originalFrames;
 			}
 		}
+
+		return [frame];
 	}
 
 	private createOriginalSource(
@@ -305,7 +352,8 @@ export class SourceMappingThreadActorProxy extends EventEmitter implements IThre
 
 	public onPaused(cb: (_event: FirefoxDebugProtocol.ThreadPausedResponse) => void): void {
 		this.underlyingActorProxy.onPaused(async (event) => {
-			await this.applySourceMapToFrame(event.frame);
+			// TODO
+			// await this.applySourceMapToFrame(event.frame);
 			cb(event);
 		});
 	}

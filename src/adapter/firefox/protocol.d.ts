@@ -293,7 +293,7 @@ declare namespace FirefoxDebugProtocol {
 	interface Frame {
 		type: 'global' | 'call' | 'eval' | 'clientEvaluate' | 'wasmcall';
 		actor: string;
-		depth: number;
+		// depth: number;
 		this?: Grip;
 		where: SourceLocation;
 		environment?: Environment;
@@ -336,7 +336,7 @@ declare namespace FirefoxDebugProtocol {
 
 	interface Environment {
 		type: 'object' | 'function' | 'with' | 'block';
-		actor: string;
+		// actor: string;
 		parent?: Environment;
 	}
 

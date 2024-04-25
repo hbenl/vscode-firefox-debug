@@ -1,9 +1,9 @@
 {
-  "name": "vscode-firefox-debug",
-  "displayName": "Debugger for Firefox",
+  "name": "vscode-firefox-debug-scope-mapping",
+  "displayName": "Debugger for Firefox with scope mapping",
   "version": "2.9.10",
   "author": "Holger Benl <hbenl@evandor.de>",
-  "publisher": "firefox-devtools",
+  "publisher": "hbenl",
   "description": "Debug your web application or browser extension in Firefox",
   "icon": "icon.png",
   "engines": {
@@ -42,6 +42,7 @@
     "minimatch": "^9.0.3",
     "source-map": "^0.7.4",
     "strip-json-comments": "3.1.1",
+    "tc39-proposal-scope-mapping": "^0.1.1",
     "uuid": "^9.0.1",
     "vscode-debugadapter": "^1.51.0",
     "vscode-uri": "^3.0.7"
@@ -291,8 +292,8 @@
     },
     "debuggers": [
       {
-        "type": "firefox",
-        "label": "Firefox",
+        "type": "firefox-scope-mapping",
+        "label": "Firefox with scope mapping",
         "program": "./dist/adapter.bundle.js",
         "runtime": "node",
         "initialConfigurations": [

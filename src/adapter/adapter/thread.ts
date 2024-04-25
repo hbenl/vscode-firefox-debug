@@ -137,7 +137,7 @@ export class ThreadAdapter extends EventEmitter {
 				if (startFrame) {
 					try {
 
-						const sourceAdapter = await this.findSourceAdapterForActorName(startFrame.frame.where.actor);
+						const sourceAdapter = await this.findSourceAdapterForActorName(startFrame.actor.frame.where.actor);
 
 						if (sourceAdapter.actor.source.introductionType === 'debugger eval') {
 

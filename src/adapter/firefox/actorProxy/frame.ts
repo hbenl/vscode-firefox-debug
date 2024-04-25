@@ -5,18 +5,25 @@ import { ActorProxy } from './interface';
 
 let log = Log.create('FrameActorProxy');
 
+export interface IFrameActorProxy {
+	name: string;
+	frame: FirefoxDebugProtocol.Frame;
+	getEnvironment(): Promise<FirefoxDebugProtocol.Environment>
+	dispose(): void;
+}
+
 /**
  * Proxy class for a frame actor
  * ([docs](https://github.com/mozilla/gecko-dev/blob/master/devtools/docs/backend/protocol.md#listing-stack-frames),
  * [spec](https://github.com/mozilla/gecko-dev/blob/master/devtools/shared/specs/frame.js))
  */
-export class FrameActorProxy implements ActorProxy {
+export class FrameActorProxy implements ActorProxy, IFrameActorProxy {
 
 	private pendingGetEnvironmentRequest?: PendingRequest<FirefoxDebugProtocol.Environment>;
 	private getEnvironmentPromise?: Promise<FirefoxDebugProtocol.Environment>;
 
 	constructor(
-		private frame: FirefoxDebugProtocol.Frame,
+		public readonly frame: FirefoxDebugProtocol.Frame,
 		private connection: DebugConnection
 	) {
 		this.connection.register(this);

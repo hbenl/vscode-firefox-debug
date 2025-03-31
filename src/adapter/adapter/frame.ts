@@ -4,7 +4,7 @@ import { EnvironmentAdapter } from './environment';
 import { ScopeAdapter } from './scope';
 import { StackFrame } from '@vscode/debugadapter';
 import { Registry } from './registry';
-import { FrameActorProxy } from '../firefox/actorProxy/frame';
+import { IFrameActorProxy } from '../firefox/actorProxy/frame';
 
 let log = Log.create('FrameAdapter');
 
@@ -18,7 +18,7 @@ export class FrameAdapter {
 
 	public constructor(
 		private readonly frameRegistry: Registry<FrameAdapter>,
-		public readonly frame: FirefoxDebugProtocol.Frame,
+		public readonly actor: IFrameActorProxy,
 		public readonly threadAdapter: ThreadAdapter
 	) {
 		this.id = frameRegistry.register(this);
@@ -26,14 +26,14 @@ export class FrameAdapter {
 
 	public async getStackframe(): Promise<StackFrame> {
 
-		let sourceActorName = this.frame.where.actor;
+		let sourceActorName = this.actor.frame.where.actor;
 		let sourceAdapter = await this.threadAdapter.debugSession.sources.getAdapterForActor(sourceActorName);
 
 		let name: string;
-		switch (this.frame.type) {
+		switch (this.actor.frame.type) {
 
 			case 'call':
-				const callFrame = this.frame as FirefoxDebugProtocol.CallFrame;
+				const callFrame = this.actor.frame as FirefoxDebugProtocol.CallFrame;
 				name = callFrame.displayName || '[anonymous function]';
 				break;
 
@@ -51,28 +51,26 @@ export class FrameAdapter {
 				break;
 
 			default:
-				name = `[${this.frame.type}]`;
-				log.error(`Unexpected frame type ${this.frame.type}`);
+				name = `[${this.actor.frame.type}]`;
+				log.error(`Unexpected frame type ${this.actor.frame.type}`);
 				break;
 		}
 
 		return new StackFrame(this.id, name, sourceAdapter.source,
-			this.frame.where.line, (this.frame.where.column || 0) + 1);
+			this.actor.frame.where.line, (this.actor.frame.where.column || 0) + 1);
 	}
 
 	public async getScopeAdapters(): Promise<ScopeAdapter[]> {
 
 		if (!this._scopeAdapters) {
 
-			const frameActor = new FrameActorProxy(this.frame.actor, this.threadAdapter.debugSession.firefoxDebugConnection);
-			const environment = await frameActor.getEnvironment();
-			frameActor.dispose();
+			const environment = await this.actor.getEnvironment();
 
 			if (environment.type) {
 				const environmentAdapter = EnvironmentAdapter.from(environment);
 				this._scopeAdapters = environmentAdapter.getScopeAdapters(this);
-				if (this.frame.this !== undefined) {
-					this._scopeAdapters[0].addThis(this.frame.this);
+				if (this.actor.frame.this !== undefined) {
+					this._scopeAdapters[0].addThis(this.actor.frame.this);
 				}
 			} else {
 				this._scopeAdapters = [];
@@ -84,5 +82,6 @@ export class FrameAdapter {
 
 	public dispose(): void {
 		this.frameRegistry.unregister(this.id);
+		this.actor.dispose();
 	}
 }

@@ -299,7 +299,7 @@ export class FirefoxDebugAdapter extends DebugAdapterBase {
 
 		let referenceExpression = accessorExpression(variablesProvider.referenceExpression, args.name);
 		let setterExpression = `${referenceExpression} = ${args.value}`;
-		let frameActorName = variablesProvider.referenceFrame.frame.actor;
+		let frameActorName = variablesProvider.referenceFrame.actor.name;
 		let result = await variablesProvider.threadAdapter.evaluate(setterExpression, false, frameActorName);
 
 		return { value: result.value, variablesReference: result.variablesReference };
@@ -319,7 +319,7 @@ export class FirefoxDebugAdapter extends DebugAdapterBase {
 					this.session.setActiveThread(frameAdapter.threadAdapter);
 
 					let threadAdapter = frameAdapter.threadAdapter;
-					let frameActorName = frameAdapter.frame.actor;
+					let frameActorName = frameAdapter.actor.name;
 
 					variable = await threadAdapter.evaluate(args.expression, true, frameActorName);
 
@@ -350,7 +350,7 @@ export class FirefoxDebugAdapter extends DebugAdapterBase {
 				if (args.frameId !== undefined) {
 					let frameAdapter = this.session.frames.find(args.frameId);
 					if (frameAdapter !== undefined) {
-						frameActorName = frameAdapter.frame.actor;
+						frameActorName = frameAdapter.actor.name;
 					}
 				}
 
@@ -384,7 +384,7 @@ export class FirefoxDebugAdapter extends DebugAdapterBase {
 			this.session.setActiveThread(frameAdapter.threadAdapter);
 
 			let threadAdapter = frameAdapter.threadAdapter;
-			let frameActorName = frameAdapter.frame.actor;
+			let frameActorName = frameAdapter.actor.name;
 
 			matches = await threadAdapter.autoComplete(args.text, args.column - 1, frameActorName);
 
@@ -459,7 +459,7 @@ export class FirefoxDebugAdapter extends DebugAdapterBase {
 
 		this.session.setActiveThread(frameAdapter.threadAdapter);
 
-		await frameAdapter.threadAdapter.restartFrame(frameAdapter.frame.actor);
+		await frameAdapter.threadAdapter.restartFrame(frameAdapter.actor.name);
 	}
 
 	protected async reloadAddon(): Promise<void> {

@@ -4,6 +4,7 @@ import { isWindowsPlatform as detectWindowsPlatform } from '../../../common/util
 import { ISourceActorProxy, SourceActorProxy } from '../actorProxy/source';
 import { SourceMapConsumer, BasicSourceMapConsumer, MappingItem } from 'source-map';
 import { UrlLocation, LocationWithColumn } from '../../location';
+import { decode, GeneratedRange, OriginalScope } from '@chrome-devtools/source-map-scopes-codec';
 
 let GREATEST_LOWER_BOUND = SourceMapConsumer.GREATEST_LOWER_BOUND;
 let LEAST_UPPER_BOUND = SourceMapConsumer.LEAST_UPPER_BOUND;
@@ -25,13 +26,23 @@ export class SourceMappingInfo {
 
 	public get hasSourceMap(): boolean { return !!this.sourceMapConsumer; }
 
+	public readonly originalScopes?: OriginalScope[];
+	public readonly generatedRanges?: GeneratedRange[];
+
 	public constructor(
 		public readonly sources: ISourceActorProxy[],
 		public readonly underlyingSource: SourceActorProxy,
 		public readonly sourceMapUri?: string,
 		private readonly sourceMapConsumer?: BasicSourceMapConsumer,
-		private readonly sourceRoot?: string
-	) {}
+		private readonly sourceRoot?: string,
+		public readonly rawSourceMap?: any
+	) {
+		if (rawSourceMap?.scopes) {
+			const { scopes, ranges } = decode(rawSourceMap);
+			this.originalScopes = scopes as OriginalScope[]; // TODO
+			this.generatedRanges = ranges;
+		}
+	}
 
 	public computeColumnSpans(): void {
 		if (this.sourceMapConsumer && !this.columnSpansComputed) {

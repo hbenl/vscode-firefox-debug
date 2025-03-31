@@ -1,6 +1,7 @@
 import { Log } from '../../util/log';
 import { DebugConnection } from '../connection';
 import { BaseActorProxy } from './base';
+import { FrameActorProxy, IFrameActorProxy } from './frame';
 
 let log = Log.create('ThreadActorProxy');
 
@@ -8,7 +9,7 @@ export interface IThreadActorProxy {
 	name: string;
 	resume(resumeLimitType?: 'next' | 'step' | 'finish' | 'restart', frameActorID?: string): Promise<void>;
 	interrupt(immediately?: boolean): Promise<void>;
-	fetchStackFrames(start?: number, count?: number): Promise<FirefoxDebugProtocol.Frame[]>;
+	fetchStackFrames(start?: number, count?: number): Promise<IFrameActorProxy[]>;
 	getAvailableEventBreakpoints() : Promise<FirefoxDebugProtocol.AvailableEventCategory[]>;
 	dispose(): void;
 }
@@ -33,9 +34,9 @@ export class ThreadActorProxy extends BaseActorProxy implements IThreadActorProx
 		await this.sendRequest({ type: 'interrupt', when: immediately ? '' : 'onNext' });
 	}
 
-	public async fetchStackFrames(start = 0, count = 1000): Promise<FirefoxDebugProtocol.Frame[]> {
+	public async fetchStackFrames(start = 0, count = 1000): Promise<IFrameActorProxy[]> {
 		const response: { frames: FirefoxDebugProtocol.Frame[] } = await this.sendRequest({ type: 'frames', start, count });
-		return response.frames;
+		return response.frames.map(frame => new FrameActorProxy(frame, this.connection));
 	}
 
 	public async getAvailableEventBreakpoints() : Promise<FirefoxDebugProtocol.AvailableEventCategory[]> {

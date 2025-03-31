@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import { Log } from '../../util/log';
 import { DebugConnection } from '../connection';
 import { IThreadActorProxy } from '../actorProxy/thread';
+import { IFrameActorProxy } from '../actorProxy/frame';
 
 let log = Log.create('SourceMappingThreadActorProxy');
 
@@ -21,13 +22,11 @@ export class SourceMappingThreadActorProxy extends EventEmitter implements IThre
 	public async fetchStackFrames(
 		start?: number,
 		count?: number
-	): Promise<FirefoxDebugProtocol.Frame[]> {
+	): Promise<IFrameActorProxy[]> {
 
-		let stackFrames = await this.underlyingActorProxy.fetchStackFrames(start, count);
+		const underlyingFrames = await this.underlyingActorProxy.fetchStackFrames(start, count);
 
-		await Promise.all(stackFrames.map((frame) => this.connection.sourceMaps.applySourceMapToFrame(frame)));
-
-		return stackFrames;
+		return (await Promise.all(underlyingFrames.map(frame => this.connection.sourceMaps.applySourceMapToFrame(frame)))).flat();
 	}
 
 	public resume(resumeLimitType?: 'next' | 'step' | 'finish' | 'restart', frameActorID?: string): Promise<void> {

@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
+    "@chrome-devtools/source-map-scopes-codec": "npm:@jsr/chrome-devtools__source-map-scopes-codec@^0.1.1",
     "@vscode/debugadapter": "^1.68.0",
     "chokidar": "^3.6.0",
     "core-js": "^3.39.0",

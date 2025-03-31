@@ -44,7 +44,7 @@ export class GetterValueAdapter implements VariablesProvider {
 		if (this.referenceExpression && this.referenceFrame) {
 
 			const grip = await this.threadAdapter.evaluateRaw(
-				this.referenceExpression, true, this.referenceFrame.frame.actor
+				this.referenceExpression, true, this.referenceFrame.actor.name
 			);
 
 			const variableAdapter = VariableAdapter.fromGrip(

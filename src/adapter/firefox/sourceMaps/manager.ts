@@ -2,6 +2,7 @@ import * as url from 'url';
 import * as fs from 'fs-extra';
 import isAbsoluteUrl from 'is-absolute-url';
 import { SourceMapConsumer, RawSourceMap } from 'source-map';
+import { GeneratedRange, OriginalScope } from '@chrome-devtools/source-map-scopes-codec';
 import { Log } from '../../util/log';
 import { getUri, urlDirname } from '../../util/net';
 import { PathMapper } from '../../util/pathMapper';
@@ -10,8 +11,10 @@ import { DebugConnection } from '../connection';
 import { SourceActorProxy } from '../actorProxy/source';
 import { SourceMappingSourceActorProxy } from './source';
 import { SourceMappingInfo } from './info';
-import { UrlLocation } from '../../location';
+import { isBefore, isInRange, LocationWithColumn, OriginalLocation, UrlLocation } from '../../location';
 import { SourcesManager } from '../../adapter/sourcesManager';
+import { SourceMappingFrameActorProxy } from './frame';
+import { IFrameActorProxy } from '../actorProxy/frame';
 
 let log = Log.create('SourceMapsManager');
 
@@ -114,26 +117,77 @@ export class SourceMapsManager {
 		return undefined;
 	}
 
-	public async applySourceMapToFrame(frame: FirefoxDebugProtocol.Frame): Promise<void> {
+	public async findOriginalSourceLocation(location: FirefoxDebugProtocol.SourceLocation): Promise<FirefoxDebugProtocol.SourceLocation | undefined> {
+		const sourceMappingInfo = await this.getSourceMappingInfo(location.actor);
+		const originalLocation = sourceMappingInfo.originalLocationFor({ line: location.line || 0, column: location.column || 0 });
+		if (originalLocation) {
+			const actor = `${sourceMappingInfo.underlyingSource.source.actor}!${originalLocation.url}`;
+			return { ...originalLocation, actor };
+		}
+		return undefined;
+	}
 
-		const sourceMappingInfo = await this.getSourceMappingInfo(frame.where.actor);
+	public async applySourceMapToFrame(frame: IFrameActorProxy): Promise<IFrameActorProxy[]> {
+
+		const sourceMappingInfo = await this.getSourceMappingInfo(frame.frame.where.actor);
 		const source = sourceMappingInfo.underlyingSource.source;
 
-		if (source && sourceMappingInfo && sourceMappingInfo.hasSourceMap && frame.where.line) {
+		if (source && sourceMappingInfo && sourceMappingInfo.hasSourceMap && frame.frame.where.line) {
 
-			let originalLocation = sourceMappingInfo.originalLocationFor({
-				line: frame.where.line, column: frame.where.column || 0
-			});
+			const generatedLocation = {
+				line: frame.frame.where.line, column: frame.frame.where.column || 0
+			};
+			const originalLocation = sourceMappingInfo.originalLocationFor(generatedLocation);
 
-			if (originalLocation && originalLocation.url) {
+			if (originalLocation && originalLocation.url && sourceMappingInfo.originalScopes && sourceMappingInfo.generatedRanges) {
+				const generatedRangeChain = getGeneratedRangeChain(
+					{ line: generatedLocation.line, column: generatedLocation.column },
+					sourceMappingInfo.generatedRanges
+				);
 
-				frame.where = {
-					actor: `${source.actor}!${originalLocation.url}`,
-					line: originalLocation.line || undefined,
-					column: originalLocation.column || undefined
+				const originalSourceActorName = `${source.actor}!${originalLocation.url}`;
+				const originalSourceIndex = sourceMappingInfo.sources.findIndex(
+					source => source.name === originalSourceActorName
+				);
+				const originalScopeChain = getOriginalScopeChain({
+					sourceIndex: originalSourceIndex,
+					line: originalLocation.line,
+					column: originalLocation.column ?? 0
+				}, sourceMappingInfo.originalScopes[originalSourceIndex]);
+				const originalFrames = [new SourceMappingFrameActorProxy(
+					frame,
+					originalLocation,
+					originalSourceActorName,
+					originalScopeChain,
+					generatedRangeChain
+				)];
+				for (const generatedRange of [...generatedRangeChain].reverse()) {
+					const callsite = generatedRange.callSite;
+					if (callsite) {
+						const originalSourceActor = sourceMappingInfo.sources[callsite.sourceIndex];
+						const originalLocation: UrlLocation = {
+							line: callsite.line,
+							column: callsite.column,
+							url: originalSourceActor.url ?? undefined
+						};
+						const originalScopeChain = getOriginalScopeChain(
+							callsite,
+							sourceMappingInfo.originalScopes[callsite.sourceIndex]
+						);
+						originalFrames.push(new SourceMappingFrameActorProxy(
+							frame,
+							originalLocation,
+							originalSourceActor.name,
+							originalScopeChain,
+							generatedRangeChain
+						));
+					}
 				}
+				return originalFrames;
 			}
 		}
+
+		return [frame];
 	}
 
 	private async createSourceMappingInfo(source: FirefoxDebugProtocol.Source): Promise<SourceMappingInfo> {
@@ -198,7 +252,7 @@ export class SourceMapsManager {
 		log.debug('Created SourceMapConsumer');
 
 		let sourceMappingInfo = new SourceMappingInfo(
-			sourceMappingSourceActors, sourceActor, sourceMapUrl, sourceMapConsumer, sourceRoot);
+			sourceMappingSourceActors, sourceActor, sourceMapUrl, sourceMapConsumer, sourceRoot, rawSourceMap);
 
 		for (let origSource of sourceMapConsumer.sources) {
 
@@ -234,3 +288,22 @@ export class SourceMapsManager {
 		}
 	}
 }
+
+function getGeneratedRangeChain(location: LocationWithColumn, generatedRanges: GeneratedRange[]): GeneratedRange[] {
+	for (const range of generatedRanges) {
+		if (!isBefore(location, range.start) && !isBefore(range.end, location)) {
+			return [range, ...getGeneratedRangeChain(location, range.children)];
+		}
+	}
+	return [];
+}
+
+
+export function getOriginalScopeChain(originalLocation: OriginalLocation, originalScope: OriginalScope): OriginalScope[] {
+	for (const childScope of originalScope.children ?? []) {
+	  if (isInRange(originalLocation, childScope)) {
+		return [originalScope, ...getOriginalScopeChain(originalLocation, childScope)];
+	  }
+	}
+	return [originalScope];
+  }

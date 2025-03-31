@@ -544,8 +544,7 @@ export class FirefoxDebugSession {
 		targetActor.onThreadState(async event => {
 			if (event.state === 'paused') {
 
-				await this.sourceMaps.applySourceMapToFrame(event.frame!);
-				const sourceLocation = event.frame!.where;
+				const sourceLocation = await this.sourceMaps.findOriginalSourceLocation(event.frame!.where) ?? event.frame!.where;
 
 				try {
 	
@@ -595,7 +594,7 @@ export class FirefoxDebugSession {
 					if (startFrame) {
 						try {
 	
-							const sourceAdapter = await this.sources.getAdapterForActor(startFrame.frame.where.actor);
+							const sourceAdapter = await this.sources.getAdapterForActor(startFrame.actor.frame.where.actor);
 	
 							if (sourceAdapter.introductionType === 'debugger eval') {
 	

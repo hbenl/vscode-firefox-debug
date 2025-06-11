@@ -141,7 +141,7 @@ export class SourceMapsManager {
 
 			if (originalLocation && originalLocation.url && sourceMappingInfo.originalScopes && sourceMappingInfo.generatedRanges) {
 				const generatedRangeChain = getGeneratedRangeChain(
-					{ line: generatedLocation.line, column: generatedLocation.column },
+					{ line: generatedLocation.line - 1, column: generatedLocation.column },
 					sourceMappingInfo.generatedRanges
 				);
 
@@ -151,7 +151,7 @@ export class SourceMapsManager {
 				);
 				const originalScopeChain = getOriginalScopeChain({
 					sourceIndex: originalSourceIndex,
-					line: originalLocation.line,
+					line: originalLocation.line - 1,
 					column: originalLocation.column ?? 0
 				}, sourceMappingInfo.originalScopes[originalSourceIndex]);
 				const originalFrames = [new SourceMappingFrameActorProxy(
@@ -166,7 +166,7 @@ export class SourceMapsManager {
 					if (callsite) {
 						const originalSourceActor = sourceMappingInfo.sources[callsite.sourceIndex];
 						const originalLocation: UrlLocation = {
-							line: callsite.line,
+							line: callsite.line + 1,
 							column: callsite.column,
 							url: originalSourceActor.url ?? undefined
 						};
@@ -181,6 +181,8 @@ export class SourceMapsManager {
 							originalScopeChain,
 							generatedRangeChain
 						));
+					} else if (generatedRange.isStackFrame) {
+						break;
 					}
 				}
 				return originalFrames;

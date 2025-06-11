@@ -140,16 +140,16 @@ function getLookupEnvironment(
 	generatedRangeChain: GeneratedRange[],
 	generatedRangeIndex: number
 ): FirefoxDebugProtocol.Environment {
-	for (let i = generatedRangeChain.length - 1; i > generatedRangeIndex; i--) {
-		// const generatedRange = generatedRangeChain[i];
-		// if (generatedRange.isScope) {
-			if (environment.scopeKind === "function lexical") {
-				assert(environment.parent);
-				environment = environment.parent;
-			}
-			assert(environment.parent);
-			environment = environment.parent;
-		// }
-	}
+	// for (let i = generatedRangeChain.length - 1; i > generatedRangeIndex; i--) {
+	// 	// const generatedRange = generatedRangeChain[i];
+	// 	// if (generatedRange.isScope) {
+	// 		if (environment.scopeKind === "function lexical") {
+	// 			assert(environment.parent);
+	// 			environment = environment.parent;
+	// 		}
+	// 		assert(environment.parent);
+	// 		environment = environment.parent;
+	// 	// }
+	// }
 	return environment;
 }

@@ -3,7 +3,7 @@
   "displayName": "Debugger for Firefox",
   "version": "2.15.0",
   "author": "Holger Benl <hbenl@evandor.de>",
-  "publisher": "firefox-devtools",
+  "publisher": "hbenl",
   "description": "Debug your web application or browser extension in Firefox",
   "icon": "icon.png",
   "engines": {
@@ -296,8 +296,8 @@
     },
     "debuggers": [
       {
-        "type": "firefox",
-        "label": "Firefox",
+        "type": "firefox-scope-mapping",
+        "label": "Firefox with scope mapping support",
         "program": "./dist/adapter.bundle.js",
         "runtime": "node",
         "languages": [

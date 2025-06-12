@@ -520,7 +520,7 @@ declare namespace FirefoxDebugProtocol {
 	
 	interface Environment {
 		type: 'object' | 'function' | 'with' | 'block';
-		scopeKind: 'global' | 'module' | 'function' | 'function lexical' | null;
+		scopeKind?: 'global' | 'module' | 'function' | 'function lexical' | null;
 		// actor?: string;
 		parent?: Environment;
 	}

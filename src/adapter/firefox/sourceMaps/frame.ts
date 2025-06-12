@@ -79,11 +79,22 @@ export class SourceMappingFrameActorProxy implements IFrameActorProxy {
 				}
 			}
 
-			originalEnvironment = {
-				type: "block",
-				bindings: { variables },
-				parent: originalEnvironment
-			} as FirefoxDebugProtocol.BlockEnvironment;
+			if (originalScope.name) {
+				originalEnvironment = {
+					type: "function",
+					bindings: { variables, arguments: [] },
+					function: {
+						displayName: originalScope.name,
+					},
+					parent: originalEnvironment
+				} as FirefoxDebugProtocol.FunctionEnvironment;
+			} else {
+				originalEnvironment = {
+					type: "block",
+					bindings: { variables },
+					parent: originalEnvironment
+				} as FirefoxDebugProtocol.BlockEnvironment;
+			}
 		}
 		return originalEnvironment!;
 	}

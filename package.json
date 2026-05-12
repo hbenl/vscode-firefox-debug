@@ -186,7 +186,7 @@
       "debug/callstack/context": [
         {
           "command": "extension.firefox-scope-mapping.toggleSkippingFile",
-          "when": "inDebugMode && debugType == 'firefox' && callStackItemType == 'stackFrame'"
+          "when": "inDebugMode && debugType == 'firefox-scope-mapping' && callStackItemType == 'stackFrame'"
         }
       ],
       "view/item/context": [
@@ -214,7 +214,7 @@
       "commandPalette": [
         {
           "command": "extension.firefox-scope-mapping.pathMappingWizard",
-          "when": "editorIsOpen && inDebugMode && debugType == 'firefox'"
+          "when": "editorIsOpen && inDebugMode && debugType == 'firefox-scope-mapping'"
         },
         {
           "command": "extension.firefox-scope-mapping.toggleSkippingFile",
@@ -285,12 +285,12 @@
         {
           "id": "extension.firefox-scope-mapping.loadedScripts",
           "name": "Loaded Scripts",
-          "when": "inDebugMode && debugType == 'firefox'"
+          "when": "inDebugMode && debugType == 'firefox-scope-mapping'"
         },
         {
           "id": "extension.firefox-scope-mapping.eventBreakpoints",
           "name": "Event Listener Breakpoints",
-          "when": "inDebugMode && debugType == 'firefox'"
+          "when": "inDebugMode && debugType == 'firefox-scope-mapping'"
         }
       ]
     },

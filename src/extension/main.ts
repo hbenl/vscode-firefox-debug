@@ -16,11 +16,11 @@ export function activate(context: vscode.ExtensionContext) {
 	const debugConfigurationProvider = new DebugConfigurationProvider();
 
 	context.subscriptions.push(vscode.window.registerTreeDataProvider(
-		'extension.firefox.loadedScripts', loadedScriptsProvider
+		'extension.firefox-scope-mapping.loadedScripts', loadedScriptsProvider
 	));
 
 	const eventBreakpointsView = vscode.window.createTreeView(
-		'extension.firefox.eventBreakpoints', {
+		'extension.firefox-scope-mapping.eventBreakpoints', {
 			treeDataProvider: eventBreakpointsProvider,
 			manageCheckboxStateManually: true,
 			showCollapseAll: true,
@@ -37,47 +37,47 @@ export function activate(context: vscode.ExtensionContext) {
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'extension.firefox.reloadAddon', () => sendCustomRequest('reloadAddon')
+		'extension.firefox-scope-mapping.reloadAddon', () => sendCustomRequest('reloadAddon')
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'extension.firefox.toggleSkippingFile', (url) => sendCustomRequest('toggleSkippingFile', url)
+		'extension.firefox-scope-mapping.toggleSkippingFile', (url) => sendCustomRequest('toggleSkippingFile', url)
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'extension.firefox.openScript', openScript
+		'extension.firefox-scope-mapping.openScript', openScript
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'extension.firefox.addPathMapping', addPathMapping
+		'extension.firefox-scope-mapping.addPathMapping', addPathMapping
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'extension.firefox.addFilePathMapping', addPathMapping
+		'extension.firefox-scope-mapping.addFilePathMapping', addPathMapping
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'extension.firefox.addNullPathMapping', addNullPathMapping
+		'extension.firefox-scope-mapping.addNullPathMapping', addNullPathMapping
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'extension.firefox.addNullFilePathMapping', addNullPathMapping
+		'extension.firefox-scope-mapping.addNullFilePathMapping', addNullPathMapping
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'extension.firefox.enablePopupAutohide', () => popupAutohideManager.setPopupAutohide(true)
+		'extension.firefox-scope-mapping.enablePopupAutohide', () => popupAutohideManager.setPopupAutohide(true)
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'extension.firefox.disablePopupAutohide', () => popupAutohideManager.setPopupAutohide(false)
+		'extension.firefox-scope-mapping.disablePopupAutohide', () => popupAutohideManager.setPopupAutohide(false)
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'extension.firefox.togglePopupAutohide', () => popupAutohideManager.togglePopupAutohide()
+		'extension.firefox-scope-mapping.togglePopupAutohide', () => popupAutohideManager.togglePopupAutohide()
 	));
 
 	context.subscriptions.push(vscode.commands.registerCommand(
-		'extension.firefox.pathMappingWizard', () => createPathMappingForActiveTextEditor(loadedScriptsProvider)
+		'extension.firefox-scope-mapping.pathMappingWizard', () => createPathMappingForActiveTextEditor(loadedScriptsProvider)
 	));
 
 	context.subscriptions.push(vscode.debug.onDidReceiveDebugSessionCustomEvent(

@@ -138,106 +138,106 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.firefox.reloadAddon",
+        "command": "extension.firefox-scope-mapping.reloadAddon",
         "title": "Firefox: Reload add-on"
       },
       {
-        "command": "extension.firefox.toggleSkippingFile",
+        "command": "extension.firefox-scope-mapping.toggleSkippingFile",
         "title": "Toggle skipping this file"
       },
       {
-        "command": "extension.firefox.openScript",
+        "command": "extension.firefox-scope-mapping.openScript",
         "title": "Open script"
       },
       {
-        "command": "extension.firefox.addPathMapping",
+        "command": "extension.firefox-scope-mapping.addPathMapping",
         "title": "Map to local directory"
       },
       {
-        "command": "extension.firefox.addFilePathMapping",
+        "command": "extension.firefox-scope-mapping.addFilePathMapping",
         "title": "Map to local file"
       },
       {
-        "command": "extension.firefox.addNullPathMapping",
+        "command": "extension.firefox-scope-mapping.addNullPathMapping",
         "title": "Don't map this directory"
       },
       {
-        "command": "extension.firefox.addNullFilePathMapping",
+        "command": "extension.firefox-scope-mapping.addNullFilePathMapping",
         "title": "Don't map this file"
       },
       {
-        "command": "extension.firefox.enablePopupAutohide",
+        "command": "extension.firefox-scope-mapping.enablePopupAutohide",
         "title": "Firefox: Enable popup auto-hide"
       },
       {
-        "command": "extension.firefox.disablePopupAutohide",
+        "command": "extension.firefox-scope-mapping.disablePopupAutohide",
         "title": "Firefox: Disable popup auto-hide"
       },
       {
-        "command": "extension.firefox.togglePopupAutohide",
+        "command": "extension.firefox-scope-mapping.togglePopupAutohide",
         "title": "Firefox: Toggle popup auto-hide"
       },
       {
-        "command": "extension.firefox.pathMappingWizard",
+        "command": "extension.firefox-scope-mapping.pathMappingWizard",
         "title": "Firefox: Run the path mapping wizard"
       }
     ],
     "menus": {
       "debug/callstack/context": [
         {
-          "command": "extension.firefox.toggleSkippingFile",
+          "command": "extension.firefox-scope-mapping.toggleSkippingFile",
           "when": "inDebugMode && debugType == 'firefox' && callStackItemType == 'stackFrame'"
         }
       ],
       "view/item/context": [
         {
-          "command": "extension.firefox.addPathMapping",
+          "command": "extension.firefox-scope-mapping.addPathMapping",
           "group": "addPathMapping@1",
-          "when": "view == extension.firefox.loadedScripts && viewItem == directory"
+          "when": "view == extension.firefox-scope-mapping.loadedScripts && viewItem == directory"
         },
         {
-          "command": "extension.firefox.addFilePathMapping",
+          "command": "extension.firefox-scope-mapping.addFilePathMapping",
           "group": "addPathMapping@1",
-          "when": "view == extension.firefox.loadedScripts && viewItem == file"
+          "when": "view == extension.firefox-scope-mapping.loadedScripts && viewItem == file"
         },
         {
-          "command": "extension.firefox.addNullPathMapping",
+          "command": "extension.firefox-scope-mapping.addNullPathMapping",
           "group": "addPathMapping@2",
-          "when": "view == extension.firefox.loadedScripts && viewItem == directory"
+          "when": "view == extension.firefox-scope-mapping.loadedScripts && viewItem == directory"
         },
         {
-          "command": "extension.firefox.addNullFilePathMapping",
+          "command": "extension.firefox-scope-mapping.addNullFilePathMapping",
           "group": "addPathMapping@2",
-          "when": "view == extension.firefox.loadedScripts && viewItem == file"
+          "when": "view == extension.firefox-scope-mapping.loadedScripts && viewItem == file"
         }
       ],
       "commandPalette": [
         {
-          "command": "extension.firefox.pathMappingWizard",
+          "command": "extension.firefox-scope-mapping.pathMappingWizard",
           "when": "editorIsOpen && inDebugMode && debugType == 'firefox'"
         },
         {
-          "command": "extension.firefox.toggleSkippingFile",
+          "command": "extension.firefox-scope-mapping.toggleSkippingFile",
           "when": "false"
         },
         {
-          "command": "extension.firefox.openScript",
+          "command": "extension.firefox-scope-mapping.openScript",
           "when": "false"
         },
         {
-          "command": "extension.firefox.addPathMapping",
+          "command": "extension.firefox-scope-mapping.addPathMapping",
           "when": "false"
         },
         {
-          "command": "extension.firefox.addFilePathMapping",
+          "command": "extension.firefox-scope-mapping.addFilePathMapping",
           "when": "false"
         },
         {
-          "command": "extension.firefox.addNullPathMapping",
+          "command": "extension.firefox-scope-mapping.addNullPathMapping",
           "when": "false"
         },
         {
-          "command": "extension.firefox.addNullFilePathMapping",
+          "command": "extension.firefox-scope-mapping.addNullFilePathMapping",
           "when": "false"
         }
       ]
@@ -245,12 +245,12 @@
     "configuration": {
       "title": "Firefox debug",
       "properties": {
-        "firefox.executable": {
+        "firefox-scope-mapping.executable": {
           "description": "Absolute path to the Firefox executable",
           "type": "string",
           "scope": "resource"
         },
-        "firefox.args": {
+        "firefox-scope-mapping.args": {
           "description": "Additional arguments passed to Firefox",
           "type": "array",
           "items": {
@@ -258,22 +258,22 @@
           },
           "scope": "resource"
         },
-        "firefox.profileDir": {
+        "firefox-scope-mapping.profileDir": {
           "description": "The path of the Firefox profile directory to use",
           "type": "string",
           "scope": "resource"
         },
-        "firefox.profile": {
+        "firefox-scope-mapping.profile": {
           "description": "The name of the Firefox profile to use",
           "type": "string",
           "scope": "resource"
         },
-        "firefox.keepProfileChanges": {
+        "firefox-scope-mapping.keepProfileChanges": {
           "description": "Use the specified profile directly instead of a temporary copy",
           "type": "boolean",
           "scope": "resource"
         },
-        "firefox.port": {
+        "firefox-scope-mapping.port": {
           "description": "The remote debugging port to use",
           "type": "number",
           "scope": "resource"
@@ -283,12 +283,12 @@
     "views": {
       "debug": [
         {
-          "id": "extension.firefox.loadedScripts",
+          "id": "extension.firefox-scope-mapping.loadedScripts",
           "name": "Loaded Scripts",
           "when": "inDebugMode && debugType == 'firefox'"
         },
         {
-          "id": "extension.firefox.eventBreakpoints",
+          "id": "extension.firefox-scope-mapping.eventBreakpoints",
           "name": "Event Listener Breakpoints",
           "when": "inDebugMode && debugType == 'firefox'"
         }

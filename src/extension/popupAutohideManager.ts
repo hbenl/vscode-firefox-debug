@@ -22,7 +22,7 @@ export class PopupAutohideManager {
 
 		if (!this.button) {
 			this.button = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-			this.button.command = 'extension.firefox.togglePopupAutohide';
+			this.button.command = 'extension.firefox-scope-mapping.togglePopupAutohide';
 			this.button.text = '';
 			this.button.show();
 		}

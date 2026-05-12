@@ -3,6 +3,7 @@ import { Log } from '../../util/log';
 import { DebugConnection } from '../connection';
 import { IThreadActorProxy } from '../actorProxy/thread';
 import { IFrameActorProxy } from '../actorProxy/frame';
+import { ConsoleActorProxy } from '../actorProxy/console';
 
 let log = Log.create('SourceMappingThreadActorProxy');
 
@@ -10,6 +11,7 @@ export class SourceMappingThreadActorProxy extends EventEmitter implements IThre
 
 	public constructor(
 		private readonly underlyingActorProxy: IThreadActorProxy,
+		private readonly console: ConsoleActorProxy,
 		private readonly connection: DebugConnection
 	) {
 		super();
@@ -26,7 +28,7 @@ export class SourceMappingThreadActorProxy extends EventEmitter implements IThre
 
 		const underlyingFrames = await this.underlyingActorProxy.fetchStackFrames(start, count);
 
-		return (await Promise.all(underlyingFrames.map(frame => this.connection.sourceMaps.applySourceMapToFrame(frame)))).flat();
+		return (await Promise.all(underlyingFrames.map(frame => this.connection.sourceMaps.applySourceMapToFrame(this.console, frame)))).flat();
 	}
 
 	public resume(resumeLimitType?: 'next' | 'step' | 'finish' | 'restart', frameActorID?: string): Promise<void> {

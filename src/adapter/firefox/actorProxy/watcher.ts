@@ -59,8 +59,8 @@ export class WatcherActorProxy extends BaseActorProxy {
 		if (event.type === 'target-available-form') {
 			const targetActorProxy = new TargetActorProxy(event.target, this.connection);
 			const threadActorProxy = new ThreadActorProxy(event.target.threadActor, this.connection);
-			const sourcemappingThreadActorProxy = new SourceMappingThreadActorProxy(threadActorProxy, this.connection);
 			const consoleActorProxy = new ConsoleActorProxy(event.target.consoleActor, this.connection);
+			const sourcemappingThreadActorProxy = new SourceMappingThreadActorProxy(threadActorProxy, consoleActorProxy, this.connection);
 			this.emit('targetAvailable', [targetActorProxy, sourcemappingThreadActorProxy, consoleActorProxy]);
 		} else if (event.type === 'target-destroyed-form') {
 			this.emit('targetDestroyed', event.target.actor);

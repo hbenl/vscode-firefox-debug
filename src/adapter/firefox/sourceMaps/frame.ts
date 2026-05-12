@@ -3,6 +3,7 @@ import { IFrameActorProxy } from '../actorProxy/frame';
 import { UrlLocation } from '../../location';
 import { GeneratedRange, OriginalScope } from '@chrome-devtools/source-map-scopes-codec';
 import assert from 'assert';
+import { ConsoleActorProxy } from '../actorProxy/console';
 
 const log = Log.create('SourceMappingFrameActorProxy');
 
@@ -17,6 +18,7 @@ export class SourceMappingFrameActorProxy implements IFrameActorProxy {
 	}
 
 	public constructor(
+		private console: ConsoleActorProxy,
 		private underlyingActorProxy: IFrameActorProxy,
 		originalLocation: UrlLocation,
 		originalSourceActorName: string,
@@ -69,7 +71,8 @@ export class SourceMappingFrameActorProxy implements IFrameActorProxy {
 					// 		}
 					// 	}
 					}
-					const value = getValueFromEnvironment(expression, lookupEnvironment);
+					// const value = getValueFromEnvironment(expression, lookupEnvironment);
+					const value = expression ? await this.console.evaluate(expression, true, this.underlyingActorProxy.name) : "unavailable";
 					variables[varname] = {
 						configurable: true,
 						enumerable: true,

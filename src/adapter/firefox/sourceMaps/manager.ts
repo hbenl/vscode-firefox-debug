@@ -15,6 +15,7 @@ import { isBefore, isInRange, LocationWithColumn, OriginalLocation, UrlLocation 
 import { SourcesManager } from '../../adapter/sourcesManager';
 import { SourceMappingFrameActorProxy } from './frame';
 import { IFrameActorProxy } from '../actorProxy/frame';
+import { ConsoleActorProxy } from '../actorProxy/console';
 
 let log = Log.create('SourceMapsManager');
 
@@ -127,7 +128,7 @@ export class SourceMapsManager {
 		return undefined;
 	}
 
-	public async applySourceMapToFrame(frame: IFrameActorProxy): Promise<IFrameActorProxy[]> {
+	public async applySourceMapToFrame(console: ConsoleActorProxy, frame: IFrameActorProxy): Promise<IFrameActorProxy[]> {
 
 		const sourceMappingInfo = await this.getSourceMappingInfo(frame.frame.where.actor);
 		const source = sourceMappingInfo.underlyingSource.source;
@@ -155,6 +156,7 @@ export class SourceMapsManager {
 					column: originalLocation.column ?? 0
 				}, sourceMappingInfo.originalScopes[originalSourceIndex]);
 				const originalFrames = [new SourceMappingFrameActorProxy(
+					console,
 					frame,
 					originalLocation,
 					originalSourceActorName,
@@ -175,6 +177,7 @@ export class SourceMapsManager {
 							sourceMappingInfo.originalScopes[callsite.sourceIndex]
 						);
 						originalFrames.push(new SourceMappingFrameActorProxy(
+							console,
 							frame,
 							originalLocation,
 							originalSourceActor.name,

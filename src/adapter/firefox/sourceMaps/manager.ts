@@ -133,19 +133,19 @@ export class SourceMapsManager {
 		const sourceMappingInfo = await this.getSourceMappingInfo(frame.frame.where.actor);
 		const source = sourceMappingInfo.underlyingSource.source;
 
-		if (source && sourceMappingInfo && sourceMappingInfo.hasSourceMap && frame.frame.where.line) {
+		if (source && sourceMappingInfo && sourceMappingInfo.hasSourceMap && sourceMappingInfo.originalScopes && sourceMappingInfo.generatedRanges && frame.frame.where.line) {
 
 			const generatedLocation = {
 				line: frame.frame.where.line, column: frame.frame.where.column || 0
 			};
-			const originalLocation = sourceMappingInfo.originalLocationFor(generatedLocation);
-
-			if (originalLocation && originalLocation.url && sourceMappingInfo.originalScopes && sourceMappingInfo.generatedRanges) {
 				const generatedRangeChain = getGeneratedRangeChain(
 					{ line: generatedLocation.line - 1, column: generatedLocation.column },
 					sourceMappingInfo.generatedRanges
 				);
 
+			const originalFrames: IFrameActorProxy[] = [];
+			const originalLocation = sourceMappingInfo.originalLocationFor(generatedLocation);
+			if (originalLocation && originalLocation.url) {
 				const originalSourceActorName = `${source.actor}!${originalLocation.url}`;
 				const originalSourceIndex = sourceMappingInfo.sources.findIndex(
 					source => source.name === originalSourceActorName
@@ -155,14 +155,18 @@ export class SourceMapsManager {
 					line: originalLocation.line - 1,
 					column: originalLocation.column ?? 0
 				}, sourceMappingInfo.originalScopes[originalSourceIndex]);
-				const originalFrames = [new SourceMappingFrameActorProxy(
+				originalFrames.push(new SourceMappingFrameActorProxy(
 					console,
 					frame,
 					originalLocation,
 					originalSourceActorName,
 					originalScopeChain,
 					generatedRangeChain
-				)];
+				));
+			} else {
+				originalFrames.push(frame);
+			}
+
 				for (const generatedRange of [...generatedRangeChain].reverse()) {
 					const callsite = generatedRange.callSite;
 					if (callsite) {
@@ -189,7 +193,6 @@ export class SourceMapsManager {
 					}
 				}
 				return originalFrames;
-			}
 		}
 
 		return [frame];

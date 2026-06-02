@@ -4,6 +4,7 @@ import { DebugConnection } from '../connection';
 import { IThreadActorProxy } from '../actorProxy/thread';
 import { IFrameActorProxy } from '../actorProxy/frame';
 import { ConsoleActorProxy } from '../actorProxy/console';
+import { SourceMappingFrameActorProxy } from './frame';
 
 let log = Log.create('SourceMappingThreadActorProxy');
 
@@ -32,7 +33,7 @@ export class SourceMappingThreadActorProxy extends EventEmitter implements IThre
 		const finalFrames: IFrameActorProxy[] = [];
 		let hideNextFrame = false;
 		for (let i = 0; i < sourceMappedFrames.length; i++) {
-			if (!hideNextFrame) {
+			if (!hideNextFrame && sourceMappedFrames[i] instanceof SourceMappingFrameActorProxy) {
 				finalFrames.push(sourceMappedFrames[i]);
 			}
 			hideNextFrame = sourceMappedFrames[i].hideCaller;

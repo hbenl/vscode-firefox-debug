@@ -7,6 +7,7 @@ let log = Log.create('FrameActorProxy');
 export interface IFrameActorProxy {
 	name: string;
 	frame: FirefoxDebugProtocol.Frame;
+	hideCaller: boolean;
 	getEnvironment(): Promise<FirefoxDebugProtocol.Environment>
 	dispose(): void;
 }
@@ -17,6 +18,8 @@ export interface IFrameActorProxy {
  * [spec](https://github.com/mozilla/gecko-dev/blob/master/devtools/shared/specs/frame.js))
  */
 export class FrameActorProxy extends BaseActorProxy implements IFrameActorProxy {
+
+	public hideCaller = false;
 
 	constructor(
 		public readonly frame: FirefoxDebugProtocol.Frame,

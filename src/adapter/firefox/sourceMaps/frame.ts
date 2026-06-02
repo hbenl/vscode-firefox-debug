@@ -12,6 +12,7 @@ const numberRegex = /^\s*[+-]?(\d+|\d*\.\d+|\d+\.\d*)([Ee][+-]?\d+)?\s*$/;
 export class SourceMappingFrameActorProxy implements IFrameActorProxy {
 
 	public readonly frame: FirefoxDebugProtocol.Frame;
+	public hideCaller = false;
 
 	public get name(): string {
 		return this.frame.actor;

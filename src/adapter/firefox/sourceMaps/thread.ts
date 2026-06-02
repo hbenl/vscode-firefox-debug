@@ -28,7 +28,16 @@ export class SourceMappingThreadActorProxy extends EventEmitter implements IThre
 
 		const underlyingFrames = await this.underlyingActorProxy.fetchStackFrames(start, count);
 
-		return (await Promise.all(underlyingFrames.map(frame => this.connection.sourceMaps.applySourceMapToFrame(this.console, frame)))).flat();
+		const sourceMappedFrames = (await Promise.all(underlyingFrames.map(frame => this.connection.sourceMaps.applySourceMapToFrame(this.console, frame)))).flat();
+		const finalFrames: IFrameActorProxy[] = [];
+		let hideNextFrame = false;
+		for (let i = 0; i < sourceMappedFrames.length; i++) {
+			if (!hideNextFrame) {
+				finalFrames.push(sourceMappedFrames[i]);
+			}
+			hideNextFrame = sourceMappedFrames[i].hideCaller;
+		}
+		return finalFrames;
 	}
 
 	public resume(resumeLimitType?: 'next' | 'step' | 'finish' | 'restart', frameActorID?: string): Promise<void> {

@@ -138,10 +138,10 @@ export class SourceMapsManager {
 			const generatedLocation = {
 				line: frame.frame.where.line, column: frame.frame.where.column || 0
 			};
-				const generatedRangeChain = getGeneratedRangeChain(
-					{ line: generatedLocation.line - 1, column: generatedLocation.column },
-					sourceMappingInfo.generatedRanges
-				);
+			const generatedRangeChain = getGeneratedRangeChain(
+				{ line: generatedLocation.line - 1, column: generatedLocation.column },
+				sourceMappingInfo.generatedRanges
+			);
 
 			const originalFrames: IFrameActorProxy[] = [];
 			const originalLocation = sourceMappingInfo.originalLocationFor(generatedLocation);
@@ -167,32 +167,33 @@ export class SourceMapsManager {
 				originalFrames.push(frame);
 			}
 
-				for (const generatedRange of [...generatedRangeChain].reverse()) {
-					const callsite = generatedRange.callSite;
-					if (callsite) {
-						const originalSourceActor = sourceMappingInfo.sources[callsite.sourceIndex];
-						const originalLocation: UrlLocation = {
-							line: callsite.line + 1,
-							column: callsite.column,
-							url: originalSourceActor.url ?? undefined
-						};
-						const originalScopeChain = getOriginalScopeChain(
-							callsite,
-							sourceMappingInfo.originalScopes[callsite.sourceIndex]
-						);
-						originalFrames.push(new SourceMappingFrameActorProxy(
-							console,
-							frame,
-							originalLocation,
-							originalSourceActor.name,
-							originalScopeChain,
-							generatedRangeChain
-						));
-					} else if (generatedRange.isStackFrame) {
-						break;
-					}
+			for (const generatedRange of [...generatedRangeChain].reverse()) {
+				const callsite = generatedRange.callSite;
+				if (callsite) {
+					const originalSourceActor = sourceMappingInfo.sources[callsite.sourceIndex];
+					const originalLocation: UrlLocation = {
+						line: callsite.line + 1,
+						column: callsite.column,
+						url: originalSourceActor.url ?? undefined
+					};
+					const originalScopeChain = getOriginalScopeChain(
+						callsite,
+						sourceMappingInfo.originalScopes[callsite.sourceIndex]
+					);
+					originalFrames.push(new SourceMappingFrameActorProxy(
+						console,
+						frame,
+						originalLocation,
+						originalSourceActor.name,
+						originalScopeChain,
+						generatedRangeChain
+					));
+				} else if (generatedRange.isStackFrame) {
+					originalFrames[originalFrames.length - 1].hideCaller = generatedRange.isHidden;
+					break;
 				}
-				return originalFrames;
+			}
+			return originalFrames;
 		}
 
 		return [frame];

@@ -26,15 +26,26 @@ export class SourceMappingFrameActorProxy implements IFrameActorProxy {
 		private readonly originalScopeChain: OriginalScope[],
 		private readonly generatedRangeChain: GeneratedRange[]
 	) {
+		let type = underlyingActorProxy.frame.type;
+		let displayName: string | undefined;
+		for (let i = originalScopeChain.length - 1; i >= 0; i--) {
+			if (originalScopeChain[i].isStackFrame) {
+				type = 'call';
+				displayName = originalScopeChain[i].name;
+				break;
+			}
+		}
 		this.frame = {
 			...underlyingActorProxy.frame,
 			actor: `${underlyingActorProxy.name}!${originalLocation.url}`,
+			type,
+			displayName,
 			where: {
 				actor: originalSourceActorName,
 				line: originalLocation.line || undefined,
 				column: originalLocation.column || undefined
 			}
-		};
+		} as FirefoxDebugProtocol.CallFrame;
 	}
 
 	public async getEnvironment(): Promise<FirefoxDebugProtocol.Environment> {
